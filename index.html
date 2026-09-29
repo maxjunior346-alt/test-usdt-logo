@@ -4,49 +4,46 @@
     <title>USDT TEST</title>
 </head>
 <body>
-    <h2>USDT TEST</h2>
 
-    <button onclick="addToken()">Add Token to MetaMask</button>
+<h2>USDT TEST</h2>
 
-    <p id="status"></p>
+<button onclick="addToken()">Add USDT TEST to MetaMask</button>
 
-    <script>
-        async function addToken() {
-            const status = document.getElementById("status");
+<p id="status"></p>
 
-            if (!window.ethereum) {
-                status.innerText = "MetaMask was not detected.";
-                return;
+<script>
+async function addToken() {
+    const status = document.getElementById("status");
+
+    if (!window.ethereum) {
+        status.innerText = "MetaMask was not detected.";
+        return;
+    }
+
+    try {
+        const wasAdded = await window.ethereum.request({
+            method: "wallet_watchAsset",
+            params: {
+                type: "ERC20",
+                options: {
+                    address: "0x68055A99dcB33Ac054FDE9D7039DCcCa80DF6Cae",
+                    symbol: "USDT",
+                    decimals: 6,
+                    image: "https://raw.githubusercontent.com/maxjunior346-alt/test-usdt-logo/main/0xdac17f958d2ee523a2206206994597c13d831ec7.png"
+                }
             }
+        });
 
-            try {
-                status.innerText = "Opening MetaMask...";
+        status.innerText = wasAdded
+            ? "USDT TEST added."
+            : "Token was not added.";
 
-                const result = await window.ethereum.request({
-                    method: "wallet_watchAsset",
-                    params: {
-                        type: "ERC20",
-                        options: {
-                            address: "0x68055A99dcB33Ac054FDE9D7039DCcCa80DF6Cae",
-                            symbol: "USDT",
-                            decimals: 6,
-                            image: "https://raw.githubusercontent.com/maxjunior346-alt/test-usdt-logo/main/0xdac17f958d2ee523a2206206994597c13d831ec7.png"
-                        }
-                    }
-                });
+    } catch (error) {
+        status.innerText = "Error: " + error.message;
+        console.error(error);
+    }
+}
+</script>
 
-                status.innerText = result
-                    ? "Token added successfully!"
-                    : "Token was not added.";
-
-            } catch (error) {
-                status.innerText =
-                    "ERROR: " + error.message +
-                    " | Code: " + (error.code || "none");
-
-                console.error(error);
-            }
-        }
-    </script>
 </body>
 </html>
