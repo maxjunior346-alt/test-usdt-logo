@@ -4,8 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>USDT TEST Dashboard</title>
+    <title>USDT-D Dashboard</title>
 
     <style>
         * {
@@ -21,66 +20,48 @@
 
         .container {
             width: 100%;
-            max-width: 700px;
+            max-width: 680px;
             margin: 0 auto;
-            padding: 30px 20px;
-        }
-
-        .warning {
-            background: #fff3cd;
-            border: 1px solid #ffe69c;
-            padding: 15px 18px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            font-size: 14px;
-            line-height: 1.5;
+            padding: 35px 20px;
         }
 
         .card {
-            background: white;
+            background: #ffffff;
             border-radius: 18px;
-            padding: 25px;
-            margin-bottom: 20px;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+            padding: 28px;
+            margin-bottom: 18px;
+            box-shadow: 0 6px 22px rgba(0, 0, 0, 0.07);
         }
 
-        .test-badge {
-            display: inline-block;
-            background: #fee2e2;
-            color: #991b1b;
-            padding: 5px 9px;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: 700;
-            margin-bottom: 15px;
+        .header {
+            margin-bottom: 28px;
         }
 
         .title {
             font-size: 30px;
             font-weight: 700;
-            margin-bottom: 5px;
         }
 
         .subtitle {
             color: #6b7280;
-            margin-bottom: 30px;
+            margin-top: 5px;
         }
 
-        .small-label {
+        .label {
             color: #6b7280;
             font-size: 14px;
-            margin-bottom: 5px;
+            margin-bottom: 6px;
         }
 
         .value {
-            font-size: 42px;
+            font-size: 44px;
             font-weight: 700;
-            margin: 5px 0 10px;
+            margin: 0 0 8px;
         }
 
         .change {
-            font-size: 18px;
-            font-weight: 700;
+            font-size: 17px;
+            font-weight: 600;
         }
 
         .row {
@@ -96,28 +77,31 @@
             border-bottom: none;
         }
 
-        .label {
-            color: #6b7280;
-        }
-
         .right {
             text-align: right;
             font-weight: 600;
         }
 
-        .status {
-            margin-top: 18px;
-            color: #6b7280;
-            font-size: 13px;
+        .contract {
+            background: #f3f4f6;
+            border-radius: 8px;
+            padding: 12px;
+            font-family: monospace;
+            font-size: 12px;
+            word-break: break-all;
         }
 
-        .contract {
-            word-break: break-all;
-            font-family: monospace;
-            font-size: 13px;
-            background: #f3f4f6;
-            padding: 12px;
-            border-radius: 8px;
+        .status {
+            color: #6b7280;
+            font-size: 12px;
+            margin-top: 14px;
+        }
+
+        .footer {
+            text-align: center;
+            color: #9ca3af;
+            font-size: 11px;
+            margin-top: 22px;
         }
     </style>
 </head>
@@ -126,30 +110,15 @@
 
 <div class="container">
 
-    <div class="warning">
-        <strong>TEST / SIMULATION</strong><br>
-        This dashboard displays simulated value for a test token.
-        It does not represent real USDT or real monetary value.
-    </div>
-
-
     <div class="card">
 
-        <div class="test-badge">
-            TEST TOKEN
+        <div class="header">
+            <div class="title">USDT-D</div>
+            <div class="subtitle">Tether USD Demo</div>
         </div>
 
-        <div class="title">
-            USDT TEST
-        </div>
-
-        <div class="subtitle">
-            Reference: Tether USD (USDT)
-        </div>
-
-
-        <div class="small-label">
-            Simulated Portfolio Value
+        <div class="label">
+            Portfolio Value
         </div>
 
         <div class="value" id="portfolioValue">
@@ -161,7 +130,7 @@
         </div>
 
         <div class="status" id="status">
-            Loading live USDT reference data...
+            Updating reference data...
         </div>
 
     </div>
@@ -171,14 +140,13 @@
 
         <div class="row">
             <span class="label">
-                Test Token Balance
+                Balance
             </span>
 
             <span class="right">
-                1,000,000 USDT TEST
+                2,300,000 USDT-D
             </span>
         </div>
-
 
         <div class="row">
             <span class="label">
@@ -190,17 +158,15 @@
             </span>
         </div>
 
-
         <div class="row">
             <span class="label">
-                USDT Reference Price
+                Reference Price
             </span>
 
             <span class="right" id="price">
                 Loading...
             </span>
         </div>
-
 
         <div class="row">
             <span class="label">
@@ -217,18 +183,23 @@
 
     <div class="card">
 
-        <strong>
-            Test Token Contract
-        </strong>
-
-        <p class="contract">
-            0x68055A99dcB33Ac054FDE9D7039DCcCa80DF6Cae
-        </p>
-
-        <div class="status">
-            BNB Smart Chain Testnet
+        <div class="label">
+            Contract
         </div>
 
+        <div class="contract">
+            0x68055A99dcB33Ac054FDE9D7039DCcCa80DF6Cae
+        </div>
+
+        <div class="status">
+            BNB Smart Chain Mainnet
+        </div>
+
+    </div>
+
+
+    <div class="footer">
+        Demo asset · Reference-based simulated USD value
     </div>
 
 </div>
@@ -236,7 +207,10 @@
 
 <script>
 
-const TEST_BALANCE = 2300000;
+const TOKEN_BALANCE = 2300000;
+
+const CONTRACT_ADDRESS =
+    "0x68055A99dcB33Ac054FDE9D7039DCcCa80DF6Cae";
 
 const API_URL =
     "https://api.coinpaprika.com/v1/tickers/usdt-tether";
@@ -255,21 +229,14 @@ async function loadUSDTData() {
                 cache: "no-store"
             });
 
-
         if (!response.ok) {
             throw new Error(
                 "API returned HTTP " + response.status
             );
         }
 
-
         const data =
             await response.json();
-
-
-        /*
-         * Read the USDT market data
-         */
 
         const price =
             Number(data.quotes.USD.price);
@@ -277,27 +244,17 @@ async function loadUSDTData() {
         const change =
             Number(data.quotes.USD.percent_change_24h);
 
-
         if (!Number.isFinite(price) ||
             !Number.isFinite(change)) {
 
             throw new Error(
-                "Invalid price data received."
+                "Invalid market data"
             );
         }
 
-
-        /*
-         * Calculate simulated value
-         */
-
         const simulatedValue =
-            TEST_BALANCE * price;
+            TOKEN_BALANCE * price;
 
-
-        /*
-         * Portfolio value
-         */
 
         document.getElementById(
             "portfolioValue"
@@ -312,19 +269,11 @@ async function loadUSDTData() {
             );
 
 
-        /*
-         * USDT reference price
-         */
-
         document.getElementById(
             "price"
         ).textContent =
             "$" + price.toFixed(6);
 
-
-        /*
-         * 24h change
-         */
 
         const changeText =
             (change >= 0 ? "+" : "") +
@@ -335,8 +284,7 @@ async function loadUSDTData() {
         document.getElementById(
             "change"
         ).textContent =
-            changeText +
-            " (reference USDT 24h change)";
+            changeText;
 
 
         document.getElementById(
@@ -345,60 +293,42 @@ async function loadUSDTData() {
             changeText;
 
 
-        /*
-         * Last update time
-         */
-
         status.textContent =
-            "Live USDT reference data updated at " +
+            "Reference data updated at " +
             new Date().toLocaleTimeString();
 
 
     } catch (error) {
 
-        console.error(
-            "USDT API error:",
-            error
-        );
-
+        console.error(error);
 
         status.textContent =
-            "Unable to load live reference data. " +
-            "Retrying automatically...";
+            "Unable to update reference data.";
 
         document.getElementById(
             "portfolioValue"
         ).textContent =
-            "Data unavailable";
+            "Unavailable";
 
         document.getElementById(
             "price"
         ).textContent =
-            "Data unavailable";
+            "Unavailable";
 
         document.getElementById(
             "change"
         ).textContent =
-            "Data unavailable";
+            "Unavailable";
 
         document.getElementById(
             "changeSmall"
         ).textContent =
-            "Data unavailable";
+            "Unavailable";
     }
 }
 
 
-/*
- * Load immediately
- */
-
 loadUSDTData();
-
-
-/*
- * Refresh every 60 seconds
- */
 
 setInterval(
     loadUSDTData,
