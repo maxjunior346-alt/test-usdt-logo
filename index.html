@@ -44,6 +44,17 @@
             box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
         }
 
+        .test-badge {
+            display: inline-block;
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 5px 9px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
         .title {
             font-size: 30px;
             font-weight: 700;
@@ -107,17 +118,6 @@
             background: #f3f4f6;
             padding: 12px;
             border-radius: 8px;
-        }
-
-        .test-badge {
-            display: inline-block;
-            background: #fee2e2;
-            color: #991b1b;
-            padding: 5px 9px;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: 700;
-            margin-bottom: 15px;
         }
     </style>
 </head>
@@ -238,125 +238,172 @@
 
 const TEST_BALANCE = 1000000;
 
-
-/*
-    Get Tether information from CoinCap.
-
-    The test token does NOT have a market price.
-    We are only using Tether's market data as a reference
-    for this test dashboard.
-*/
-
-async function getUSDTData() {
-
-    const response = await fetch(
-        "https://api.coincap.io/v2/assets/tether"
-    );
-
-    if (!response.ok) {
-        throw new Error("Market API request failed");
-    }
-
-    const data = await response.json();
-
-    return {
-        price: Number(data.data.priceUsd),
-        change: Number(data.data.changePercent24Hr)
-    };
-}
+const API_URL =
+    "https://api.coinpaprika.com/v1/tickers/usdt-tether";
 
 
 async function loadUSDTData() {
 
-    const status = document.getElementById("status");
+    const status =
+        document.getElementById("status");
 
     try {
 
-        const usdt = await getUSDTData();
+        const response =
+            await fetch(API_URL, {
+                method: "GET",
+                cache: "no-store"
+            });
 
-        const price = usdt.price;
-        const change = usdt.change;
+
+        if (!response.ok) {
+            throw new Error(
+                "API returned HTTP " + response.status
+            );
+        }
+
+
+        const data =
+            await response.json();
+
+
+        /*
+         * Read the USDT market data
+         */
+
+        const price =
+            Number(data.quotes.USD.price);
+
+        const change =
+            Number(data.quotes.USD.percent_change_24h);
+
+
+        if (!Number.isFinite(price) ||
+            !Number.isFinite(change)) {
+
+            throw new Error(
+                "Invalid price data received."
+            );
+        }
+
+
+        /*
+         * Calculate simulated value
+         */
 
         const simulatedValue =
             TEST_BALANCE * price;
 
 
         /*
-            Portfolio value
-        */
+         * Portfolio value
+         */
 
-        document.getElementById("portfolioValue").textContent =
+        document.getElementById(
+            "portfolioValue"
+        ).textContent =
             "$" +
-            simulatedValue.toLocaleString(undefined, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            });
+            simulatedValue.toLocaleString(
+                "en-US",
+                {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                }
+            );
 
 
         /*
-            USDT reference price
-        */
+         * USDT reference price
+         */
 
-        document.getElementById("price").textContent =
-            "$" +
-            price.toFixed(6);
+        document.getElementById(
+            "price"
+        ).textContent =
+            "$" + price.toFixed(6);
 
 
         /*
-            24h percentage
-        */
+         * 24h change
+         */
 
-        document.getElementById("change").textContent =
-            (change >= 0 ? "+" : "") +
-            change.toFixed(2) +
-            "% (reference USDT 24h change)";
-
-
-        document.getElementById("changeSmall").textContent =
+        const changeText =
             (change >= 0 ? "+" : "") +
             change.toFixed(2) +
             "%";
 
 
+        document.getElementById(
+            "change"
+        ).textContent =
+            changeText +
+            " (reference USDT 24h change)";
+
+
+        document.getElementById(
+            "changeSmall"
+        ).textContent =
+            changeText;
+
+
+        /*
+         * Last update time
+         */
+
         status.textContent =
-            "Live reference data updated at " +
+            "Live USDT reference data updated at " +
             new Date().toLocaleTimeString();
 
 
     } catch (error) {
 
-        console.error(error);
+        console.error(
+            "USDT API error:",
+            error
+        );
+
 
         status.textContent =
-            "Live reference data could not be loaded. Retrying automatically...";
+            "Unable to load live reference data. " +
+            "Retrying automatically...";
 
-        document.getElementById("portfolioValue").textContent =
+        document.getElementById(
+            "portfolioValue"
+        ).textContent =
             "Data unavailable";
 
-        document.getElementById("price").textContent =
+        document.getElementById(
+            "price"
+        ).textContent =
             "Data unavailable";
 
-        document.getElementById("change").textContent =
+        document.getElementById(
+            "change"
+        ).textContent =
             "Data unavailable";
 
-        document.getElementById("changeSmall").textContent =
+        document.getElementById(
+            "changeSmall"
+        ).textContent =
             "Data unavailable";
     }
 }
 
 
 /*
-    Load immediately
-*/
+ * Load immediately
+ */
 
 loadUSDTData();
 
 
 /*
-    Refresh every 60 seconds
-*/
+ * Refresh every 60 seconds
+ */
 
-setInterval(loadUSDTData, 60000);
+setInterval(
+    loadUSDTData,
+    60000
+);
 
 </script>
 
