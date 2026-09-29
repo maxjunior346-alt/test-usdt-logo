@@ -4,7 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>USDT Dashboard</title>
+
+    <title>Tether USD Dashboard</title>
 
     <!-- Ethers.js -->
     <script src="https://cdn.jsdelivr.net/npm/ethers@6.17.0/dist/ethers.min.js"></script>
@@ -37,7 +38,18 @@
         }
 
         .header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
             margin-bottom: 28px;
+        }
+
+        .logo {
+            width: 58px;
+            height: 58px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
         }
 
         .title {
@@ -105,16 +117,21 @@
             border: 0;
             border-radius: 10px;
             padding: 14px;
+            margin-top: 18px;
             font-size: 16px;
             font-weight: 700;
             cursor: pointer;
             background: #111827;
-            color: white;
-            margin-top: 18px;
+            color: #ffffff;
         }
 
         button:hover {
             opacity: 0.9;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
         }
 
         .footer {
@@ -130,49 +147,95 @@
 
 <div class="container">
 
+    <!-- Main Card -->
     <div class="card">
 
         <div class="header">
-            <div class="title">Tether USD</div>
-            <div class="subtitle">USDT</div>
+
+            <img
+                class="logo"
+                src="https://raw.githubusercontent.com/maxjunior346-alt/test-usdt-logo/main/0xdac17f958d2ee523a2206206994597c13d831ec7.png"
+                alt="Tether USD"
+            >
+
+            <div>
+                <div class="title">
+                    Tether USD
+                </div>
+
+                <div class="subtitle">
+                    USDT
+                </div>
+            </div>
+
         </div>
+
 
         <div class="label">
             Portfolio Value
         </div>
 
-        <div class="value" id="portfolioValue">
+        <div
+            class="value"
+            id="portfolioValue"
+        >
             Connect Wallet
         </div>
 
-        <div class="change" id="change">
+        <div
+            class="change"
+            id="change"
+        >
             --
         </div>
 
-        <div class="status" id="status">
-            Connect MetaMask to load your token balance.
+        <div
+            class="status"
+            id="status"
+        >
+            Connect MetaMask to load your balance.
         </div>
 
-        <button id="connectButton" onclick="connectWallet()">
+
+        <button
+            id="connectButton"
+            onclick="connectWallet()"
+        >
             Connect MetaMask
+        </button>
+
+
+        <button
+            id="addTokenButton"
+            onclick="addTokenToMetaMask()"
+        >
+            Add Token to MetaMask
         </button>
 
     </div>
 
 
+    <!-- Token Information -->
     <div class="card">
 
         <div class="row">
+
             <span class="label">
                 Balance
             </span>
 
-            <span class="right" id="tokenBalance">
+            <span
+                class="right"
+                id="tokenBalance"
+            >
                 --
             </span>
+
         </div>
 
+
         <div class="row">
+
             <span class="label">
                 Reference Asset
             </span>
@@ -180,31 +243,45 @@
             <span class="right">
                 Tether USD (USDT)
             </span>
+
         </div>
 
+
         <div class="row">
+
             <span class="label">
                 Reference Price
             </span>
 
-            <span class="right" id="price">
+            <span
+                class="right"
+                id="price"
+            >
                 Loading...
             </span>
+
         </div>
 
+
         <div class="row">
+
             <span class="label">
                 24h Change
             </span>
 
-            <span class="right" id="changeSmall">
+            <span
+                class="right"
+                id="changeSmall"
+            >
                 Loading...
             </span>
+
         </div>
 
     </div>
 
 
+    <!-- Contract -->
     <div class="card">
 
         <div class="label">
@@ -223,7 +300,7 @@
 
 
     <div class="footer">
-        Balance read directly from the blockchain
+        Custom asset · Reference-based simulated USD value
     </div>
 
 </div>
@@ -231,21 +308,56 @@
 
 <script>
 
+/*
+ * Token information
+ */
+
 const CONTRACT_ADDRESS =
     "0x68055A99dcB33Ac054FDE9D7039DCcCa80DF6Cae";
 
+const TOKEN_DECIMALS = 6;
+
+const TOKEN_SYMBOL = "USDT";
+
 const BSC_CHAIN_ID = 56;
 
+
+/*
+ * Token logo
+ */
+
+const TOKEN_LOGO =
+    "https://raw.githubusercontent.com/maxjunior346-alt/test-usdt-logo/main/0xdac17f958d2ee523a2206206994597c13d831ec7.png";
+
+
+/*
+ * Token ABI
+ */
+
 const TOKEN_ABI = [
+
     "function balanceOf(address owner) view returns (uint256)",
+
     "function decimals() view returns (uint8)",
+
     "function symbol() view returns (string)",
+
     "function name() view returns (string)"
+
 ];
+
+
+/*
+ * Live USDT reference data
+ */
 
 const PRICE_API =
     "https://api.coinpaprika.com/v1/tickers/usdt-tether";
 
+
+/*
+ * Connect MetaMask
+ */
 
 async function connectWallet() {
 
@@ -255,13 +367,17 @@ async function connectWallet() {
     const button =
         document.getElementById("connectButton");
 
+
     try {
 
         if (!window.ethereum) {
+
             status.textContent =
                 "MetaMask was not detected.";
+
             return;
         }
+
 
         /*
          * Ask MetaMask for the user's account.
@@ -269,42 +385,56 @@ async function connectWallet() {
 
         const accounts =
             await window.ethereum.request({
-                method: "eth_requestAccounts"
+
+                method:
+                    "eth_requestAccounts"
+
             });
 
+
         if (!accounts.length) {
+
             throw new Error(
-                "No wallet account was returned."
+                "No wallet account found."
             );
         }
+
 
         const userAddress =
             accounts[0];
 
 
         /*
-         * Check the current network.
+         * Check network.
          */
 
         const chainIdHex =
             await window.ethereum.request({
-                method: "eth_chainId"
+
+                method:
+                    "eth_chainId"
+
             });
 
+
         const chainId =
-            parseInt(chainIdHex, 16);
+            parseInt(
+                chainIdHex,
+                16
+            );
+
 
         if (chainId !== BSC_CHAIN_ID) {
 
             status.textContent =
-                "Please switch MetaMask to BNB Smart Chain Mainnet.";
+                "Please switch MetaMask to BNB Smart Chain.";
 
             return;
         }
 
 
         /*
-         * Connect ethers to MetaMask.
+         * Connect ethers.
          */
 
         const provider =
@@ -314,7 +444,7 @@ async function connectWallet() {
 
 
         /*
-         * Create the token contract.
+         * Contract instance.
          */
 
         const token =
@@ -326,85 +456,241 @@ async function connectWallet() {
 
 
         /*
-         * Read token information directly
-         * from the blockchain.
+         * Read balance.
          */
 
         const rawBalance =
-            await token.balanceOf(userAddress);
-
-        const decimals =
-            await token.decimals();
-
-        const symbol =
-            await token.symbol();
-
-        const name =
-            await token.name();
-
-
-        /*
-         * Convert blockchain units
-         * into normal token units.
-         */
-
-        const balance =
-            ethers.formatUnits(
-                rawBalance,
-                decimals
+            await token.balanceOf(
+                userAddress
             );
 
 
         /*
-         * Display wallet balance.
+         * Read decimals.
+         */
+
+        let decimals =
+            TOKEN_DECIMALS;
+
+
+        try {
+
+            decimals =
+                Number(
+                    await token.decimals()
+                );
+
+        } catch {
+
+            decimals =
+                TOKEN_DECIMALS;
+        }
+
+
+        /*
+         * Read symbol.
+         */
+
+        let symbol =
+            TOKEN_SYMBOL;
+
+
+        try {
+
+            symbol =
+                await token.symbol();
+
+        } catch {
+
+            symbol =
+                TOKEN_SYMBOL;
+        }
+
+
+        /*
+         * Convert balance.
+         */
+
+        const balance =
+            Number(
+                ethers.formatUnits(
+                    rawBalance,
+                    decimals
+                )
+            );
+
+
+        /*
+         * Display balance.
          */
 
         document.getElementById(
             "tokenBalance"
         ).textContent =
-            Number(balance).toLocaleString(
+
+            balance.toLocaleString(
                 "en-US",
                 {
-                    maximumFractionDigits: 6
+                    maximumFractionDigits:
+                        6
                 }
-            ) +
-            " " +
-            symbol;
+            )
+
+            + " "
+
+            + symbol;
 
 
         /*
-         * Load the reference USDT price.
+         * Load live reference price.
          */
 
         await loadUSDTPrice(
-            Number(balance)
+            balance
         );
 
 
         /*
-         * Update connection status.
+         * Show wallet address.
+
          */
 
-        status.textContent =
-            name +
-            " loaded from the BNB blockchain.";
-
-
         button.textContent =
-            userAddress.slice(0, 6) +
-            "..." +
-            userAddress.slice(-4);
+
+            userAddress.slice(0, 6)
+
+            + "..."
+
+            + userAddress.slice(-4);
+
+
+        status.textContent =
+            "Balance loaded from BNB Smart Chain.";
+
 
     } catch (error) {
 
         console.error(error);
 
         status.textContent =
-            "Could not read token balance: " +
+            "Could not read wallet balance: " +
             error.message;
     }
 }
 
+
+/*
+ * Add token to MetaMask
+ */
+
+async function addTokenToMetaMask() {
+
+    const status =
+        document.getElementById("status");
+
+
+    try {
+
+        if (!window.ethereum) {
+
+            status.textContent =
+                "MetaMask was not detected.";
+
+            return;
+        }
+
+
+        /*
+         * Check BNB Mainnet.
+         */
+
+        const chainIdHex =
+            await window.ethereum.request({
+
+                method:
+                    "eth_chainId"
+
+            });
+
+
+        const chainId =
+            parseInt(
+                chainIdHex,
+                16
+            );
+
+
+        if (chainId !== BSC_CHAIN_ID) {
+
+            status.textContent =
+                "Switch MetaMask to BNB Smart Chain first.";
+
+            return;
+        }
+
+
+        /*
+         * Ask MetaMask to watch/import the token.
+         *
+         * This adds the token address and logo
+         * to the wallet's asset list.
+         */
+
+        const wasAdded =
+            await window.ethereum.request({
+
+                method:
+                    "wallet_watchAsset",
+
+                params: {
+
+                    type:
+                        "ERC20",
+
+                    options: {
+
+                        address:
+                            CONTRACT_ADDRESS,
+
+                        symbol:
+                            TOKEN_SYMBOL,
+
+                        decimals:
+                            TOKEN_DECIMALS,
+
+                        image:
+                            TOKEN_LOGO
+                    }
+                }
+            });
+
+
+        if (wasAdded) {
+
+            status.textContent =
+                "Token added to MetaMask.";
+
+        } else {
+
+            status.textContent =
+                "Token was not added.";
+        }
+
+
+    } catch (error) {
+
+        console.error(error);
+
+        status.textContent =
+            "MetaMask error: " +
+            error.message;
+    }
+}
+
+
+/*
+ * Load live USDT reference price
+ */
 
 async function loadUSDTPrice(
     tokenBalance
@@ -414,26 +700,36 @@ async function loadUSDTPrice(
 
         const response =
             await fetch(
+
                 PRICE_API,
+
                 {
-                    method: "GET",
-                    cache: "no-store"
+                    method:
+                        "GET",
+
+                    cache:
+                        "no-store"
                 }
             );
 
+
         if (!response.ok) {
+
             throw new Error(
                 "Price API error"
             );
         }
 
+
         const data =
             await response.json();
+
 
         const price =
             Number(
                 data.quotes.USD.price
             );
+
 
         const change =
             Number(
@@ -441,38 +737,74 @@ async function loadUSDTPrice(
             );
 
 
+        if (!Number.isFinite(price) ||
+            !Number.isFinite(change)) {
+
+            throw new Error(
+                "Invalid price data"
+            );
+        }
+
+
         /*
-         * Calculate the reference-based
-         * simulated USD value.
+         * Calculate reference-based value.
          */
 
         const portfolioValue =
             tokenBalance * price;
 
 
+        /*
+         * Display portfolio value.
+         */
+
         document.getElementById(
             "portfolioValue"
         ).textContent =
+
             "$" +
+
             portfolioValue.toLocaleString(
                 "en-US",
                 {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
+                    minimumFractionDigits:
+                        2,
+
+                    maximumFractionDigits:
+                        2
                 }
             );
 
 
+        /*
+         * Reference price.
+         */
+
         document.getElementById(
             "price"
         ).textContent =
+
             "$" +
+
             price.toFixed(6);
 
 
+        /*
+         * 24h change.
+         */
+
         const changeText =
-            (change >= 0 ? "+" : "") +
-            change.toFixed(2) +
+
+            (change >= 0
+                ? "+"
+                : "")
+
+            +
+
+            change.toFixed(2)
+
+            +
+
             "%";
 
 
@@ -487,27 +819,32 @@ async function loadUSDTPrice(
         ).textContent =
             changeText;
 
+
     } catch (error) {
 
         console.error(error);
+
+
+        document.getElementById(
+            "portfolioValue"
+        ).textContent =
+            "Unavailable";
+
 
         document.getElementById(
             "price"
         ).textContent =
             "Unavailable";
 
+
         document.getElementById(
             "change"
         ).textContent =
             "Unavailable";
 
-        document.getElementById(
-            "changeSmall"
-        ).textContent =
-            "Unavailable";
 
         document.getElementById(
-            "portfolioValue"
+            "changeSmall"
         ).textContent =
             "Unavailable";
     }
@@ -515,8 +852,8 @@ async function loadUSDTPrice(
 
 
 /*
- * Reload the balance when MetaMask
- * changes accounts.
+ * Automatically reconnect if the
+ * MetaMask account changes.
  */
 
 if (window.ethereum) {
@@ -524,7 +861,9 @@ if (window.ethereum) {
     window.ethereum.on(
         "accountsChanged",
         function () {
+
             connectWallet();
+
         }
     );
 
@@ -532,7 +871,9 @@ if (window.ethereum) {
     window.ethereum.on(
         "chainChanged",
         function () {
+
             window.location.reload();
+
         }
     );
 }
