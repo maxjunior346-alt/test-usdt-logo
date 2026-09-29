@@ -6,6 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>USDT Dashboard</title>
 
+    <!-- Ethers.js -->
+    <script src="https://cdn.jsdelivr.net/npm/ethers@6.17.0/dist/ethers.min.js"></script>
+
     <style>
         * {
             box-sizing: border-box;
@@ -97,6 +100,23 @@
             margin-top: 14px;
         }
 
+        button {
+            width: 100%;
+            border: 0;
+            border-radius: 10px;
+            padding: 14px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            background: #111827;
+            color: white;
+            margin-top: 18px;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
         .footer {
             text-align: center;
             color: #9ca3af;
@@ -113,8 +133,8 @@
     <div class="card">
 
         <div class="header">
-            <div class="title">USDT</div>
-            <div class="subtitle">Tether USD</div>
+            <div class="title">Tether USD</div>
+            <div class="subtitle">USDT</div>
         </div>
 
         <div class="label">
@@ -122,16 +142,20 @@
         </div>
 
         <div class="value" id="portfolioValue">
-            Loading...
+            Connect Wallet
         </div>
 
         <div class="change" id="change">
-            Loading...
+            --
         </div>
 
         <div class="status" id="status">
-            Updating reference data...
+            Connect MetaMask to load your token balance.
         </div>
+
+        <button id="connectButton" onclick="connectWallet()">
+            Connect MetaMask
+        </button>
 
     </div>
 
@@ -143,8 +167,8 @@
                 Balance
             </span>
 
-            <span class="right">
-                2,300,000 USDT-D
+            <span class="right" id="tokenBalance">
+                --
             </span>
         </div>
 
@@ -199,7 +223,7 @@
 
 
     <div class="footer">
-        Demo asset · Reference-based simulated USD value
+        Balance read directly from the blockchain
     </div>
 
 </div>
@@ -207,31 +231,199 @@
 
 <script>
 
-const TOKEN_BALANCE = 2300000;
-
 const CONTRACT_ADDRESS =
     "0x68055A99dcB33Ac054FDE9D7039DCcCa80DF6Cae";
 
-const API_URL =
+const BSC_CHAIN_ID = 56;
+
+const TOKEN_ABI = [
+    "function balanceOf(address owner) view returns (uint256)",
+    "function decimals() view returns (uint8)",
+    "function symbol() view returns (string)",
+    "function name() view returns (string)"
+];
+
+const PRICE_API =
     "https://api.coinpaprika.com/v1/tickers/usdt-tether";
 
 
-async function loadUSDTData() {
+async function connectWallet() {
 
     const status =
         document.getElementById("status");
 
+    const button =
+        document.getElementById("connectButton");
+
+    try {
+
+        if (!window.ethereum) {
+            status.textContent =
+                "MetaMask was not detected.";
+            return;
+        }
+
+        /*
+         * Ask MetaMask for the user's account.
+         */
+
+        const accounts =
+            await window.ethereum.request({
+                method: "eth_requestAccounts"
+            });
+
+        if (!accounts.length) {
+            throw new Error(
+                "No wallet account was returned."
+            );
+        }
+
+        const userAddress =
+            accounts[0];
+
+
+        /*
+         * Check the current network.
+         */
+
+        const chainIdHex =
+            await window.ethereum.request({
+                method: "eth_chainId"
+            });
+
+        const chainId =
+            parseInt(chainIdHex, 16);
+
+        if (chainId !== BSC_CHAIN_ID) {
+
+            status.textContent =
+                "Please switch MetaMask to BNB Smart Chain Mainnet.";
+
+            return;
+        }
+
+
+        /*
+         * Connect ethers to MetaMask.
+         */
+
+        const provider =
+            new ethers.BrowserProvider(
+                window.ethereum
+            );
+
+
+        /*
+         * Create the token contract.
+         */
+
+        const token =
+            new ethers.Contract(
+                CONTRACT_ADDRESS,
+                TOKEN_ABI,
+                provider
+            );
+
+
+        /*
+         * Read token information directly
+         * from the blockchain.
+         */
+
+        const rawBalance =
+            await token.balanceOf(userAddress);
+
+        const decimals =
+            await token.decimals();
+
+        const symbol =
+            await token.symbol();
+
+        const name =
+            await token.name();
+
+
+        /*
+         * Convert blockchain units
+         * into normal token units.
+         */
+
+        const balance =
+            ethers.formatUnits(
+                rawBalance,
+                decimals
+            );
+
+
+        /*
+         * Display wallet balance.
+         */
+
+        document.getElementById(
+            "tokenBalance"
+        ).textContent =
+            Number(balance).toLocaleString(
+                "en-US",
+                {
+                    maximumFractionDigits: 6
+                }
+            ) +
+            " " +
+            symbol;
+
+
+        /*
+         * Load the reference USDT price.
+         */
+
+        await loadUSDTPrice(
+            Number(balance)
+        );
+
+
+        /*
+         * Update connection status.
+         */
+
+        status.textContent =
+            name +
+            " loaded from the BNB blockchain.";
+
+
+        button.textContent =
+            userAddress.slice(0, 6) +
+            "..." +
+            userAddress.slice(-4);
+
+    } catch (error) {
+
+        console.error(error);
+
+        status.textContent =
+            "Could not read token balance: " +
+            error.message;
+    }
+}
+
+
+async function loadUSDTPrice(
+    tokenBalance
+) {
+
     try {
 
         const response =
-            await fetch(API_URL, {
-                method: "GET",
-                cache: "no-store"
-            });
+            await fetch(
+                PRICE_API,
+                {
+                    method: "GET",
+                    cache: "no-store"
+                }
+            );
 
         if (!response.ok) {
             throw new Error(
-                "API returned HTTP " + response.status
+                "Price API error"
             );
         }
 
@@ -239,28 +431,30 @@ async function loadUSDTData() {
             await response.json();
 
         const price =
-            Number(data.quotes.USD.price);
+            Number(
+                data.quotes.USD.price
+            );
 
         const change =
-            Number(data.quotes.USD.percent_change_24h);
-
-        if (!Number.isFinite(price) ||
-            !Number.isFinite(change)) {
-
-            throw new Error(
-                "Invalid market data"
+            Number(
+                data.quotes.USD.percent_change_24h
             );
-        }
 
-        const simulatedValue =
-            TOKEN_BALANCE * price;
+
+        /*
+         * Calculate the reference-based
+         * simulated USD value.
+         */
+
+        const portfolioValue =
+            tokenBalance * price;
 
 
         document.getElementById(
             "portfolioValue"
         ).textContent =
             "$" +
-            simulatedValue.toLocaleString(
+            portfolioValue.toLocaleString(
                 "en-US",
                 {
                     minimumFractionDigits: 2,
@@ -272,7 +466,8 @@ async function loadUSDTData() {
         document.getElementById(
             "price"
         ).textContent =
-            "$" + price.toFixed(6);
+            "$" +
+            price.toFixed(6);
 
 
         const changeText =
@@ -292,23 +487,9 @@ async function loadUSDTData() {
         ).textContent =
             changeText;
 
-
-        status.textContent =
-            "Reference data updated at " +
-            new Date().toLocaleTimeString();
-
-
     } catch (error) {
 
         console.error(error);
-
-        status.textContent =
-            "Unable to update reference data.";
-
-        document.getElementById(
-            "portfolioValue"
-        ).textContent =
-            "Unavailable";
 
         document.getElementById(
             "price"
@@ -324,16 +505,37 @@ async function loadUSDTData() {
             "changeSmall"
         ).textContent =
             "Unavailable";
+
+        document.getElementById(
+            "portfolioValue"
+        ).textContent =
+            "Unavailable";
     }
 }
 
 
-loadUSDTData();
+/*
+ * Reload the balance when MetaMask
+ * changes accounts.
+ */
 
-setInterval(
-    loadUSDTData,
-    60000
-);
+if (window.ethereum) {
+
+    window.ethereum.on(
+        "accountsChanged",
+        function () {
+            connectWallet();
+        }
+    );
+
+
+    window.ethereum.on(
+        "chainChanged",
+        function () {
+            window.location.reload();
+        }
+    );
+}
 
 </script>
 
