@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>USDT TEST</title>
+</head>
+<body>
+    <h2>USDT TEST</h2>
+    <button onclick="addToken()">Add Token to MetaMask</button>
+
+    <p id="status"></p>
+
+    <script>
+        async function addToken() {
+            const status = document.getElementById("status");
+
+            if (!window.ethereum) {
+                status.innerText = "MetaMask was not detected.";
+                return;
+            }
+
+            try {
+                status.innerText = "Opening MetaMask...";
+
+                const result = await window.ethereum.request({
+                    method: "wallet_watchAsset",
+                    params: {
+                        type: "ERC20",
+                        options: {
+                            address: "0x68055A99dcB33Ac054FDE9D7039DCcCa80DF6Cae",
+                            symbol: "USDT",
+                            decimals: 6,
+                            image: "https://raw.githubusercontent.com/maxjunior346-alt/test-usdt-logo/main/0xdac17f958d2ee523a2206206994597c13d831ec7.png"
+                        }
+                    }
+                });
+
+                status.innerText = "MetaMask response: " + result;
+
+            } catch (error) {
+                status.innerText =
+                    "ERROR: " +
+                    error.message +
+                    " | Code: " +
+                    (error.code || "none");
+
+                console.error(error);
+            }
+        }
+    </script>
+</body>
+</html>
